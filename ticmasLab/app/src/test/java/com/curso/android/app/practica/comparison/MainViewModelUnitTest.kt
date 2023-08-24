@@ -1,39 +1,46 @@
 package com.curso.android.app.practica.comparison
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.Observer
 import com.curso.android.app.practica.comparison.view.MainViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.*
-import org.junit.After
-import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mock
+import org.mockito.Mockito.*
+import org.mockito.MockitoAnnotations
 
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
-@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class MainViewModelUnitTest {
+
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    @Mock
+    private lateinit var observer: Observer<String>
 
     private lateinit var viewModel: MainViewModel
 
-    @get:Rule
-    val instantTaskRule = InstantTaskExecutorRule()
-    private val dispatcher = StandardTestDispatcher()
-
     @Before
     fun setup() {
-        Dispatchers.setMain(dispatcher)
+        MockitoAnnotations.initMocks(this)
         viewModel = MainViewModel()
+        viewModel.result.observeForever(observer)
     }
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
+    @Test
+    fun testCompareTexts_equal() {
+        viewModel.setText1("Hello")
+        viewModel.setText2("Hello")
+        viewModel.compareTexts()
+        verify(observer).onChanged("Las cadenas son iguales")
     }
 
+    @Test
+    fun testCompareTexts_notEqual() {
+        viewModel.setText1("Hello")
+        viewModel.setText2("World")
+        viewModel.compareTexts()
+        verify(observer).onChanged("Las cadenas son diferentes")
+    }
 }
+
